@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Draw a point (1)</title>
+  </head>
+  <style>
+    input:focus {
+      outline: none;
+    }
+    #colorDisplay {
+      margin-bottom: 10px;
+      width: 100px;
+      height: 100px;
+      border: 1px solid #000;
+    }
+    img {
+      height: 200px;
+      width: 200px;
+    }
+    #bottomSpace {
+      height: 20vh;
+      width: 100vw;
+      background-color: white;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    canvas {
+      max-width: 800px;
+      width: 100%;
+    }
+    /* NOTE: to self had assign values to canvas then scale it to make it render correctly for the aspects or else it would be screwed */
+  </style>
+  <body onload="main()">
+    <div>
+      <h2>Anthony Duong</h2>
+      <h2>ankaduon@ucsc.edu</h2>
+      <h2>
+        Notes to graders: When user hits W, call camera.moveForward()<br />When
+        user hits S, call camera.moveBackwards() <br />When user hits A, call
+        camera.moveLeft() <br />When user hits Q call camera.panLeft()
+        <br />When user hits E call camera.panRight()
+      </h2>
+    </div>
+    <canvas id="asg2" width="700" height="700">
+      Please use the browser supporting "canvas".
+    </canvas>
+    <div>
+      <div>
+        Animation :
+        <p id="fps"></p>
+      </div>
+      <button id="On">ON</button>
+      <button id="Off">Off</button>
+    </div>
+
+    <div style="display: flex">
+      <div>
+        Camera Angle<input
+          type="range"
+          min="-360"
+          max="360"
+          value="0"
+          class="slider"
+          id="angleSlide"
+        />
+      </div>
+    </div>
+    <!-- javascript files containing functions for WebGL -->
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <!-- <script src="lib/cuon-matrix.js"></script> -->
+    <script src="lib/cuon-matrix-cse160.js"></script>
+    <script src="./Triangle.js"></script>
+    <script src="./Square.js"></script>
+    <script src="./Circle.js"></script>
+    <script src="./Cube.js"></script>
+    <script src="./Camera.js"></script>
+    <script src="./asg3.js"></script>
+    <script src="./drawPenguin.js"></script>
+  </body>
+</html>
