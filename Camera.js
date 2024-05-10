@@ -2,9 +2,9 @@ class Camera {
   constructor() {
     this.fov = 60;
     // NOTE: eye controls the view in the persective as it relates to the object
-    this.eye = new Vector3([0, 0.5, 100]);
+    this.eye = new Vector3([0, 0.2, 10]);
     this.at = new Vector3([0, 1, -100]);
-    this.up = new Vector3([0, 1, 0]);
+    this.up = new Vector3([0, 1.5, 0]);
     this.viewMat = new Matrix4();
     this.viewMat.setLookAt(
       this.eye.elements[0],
@@ -61,7 +61,7 @@ class Camera {
     ); // (eye, at, up)
   }
 
-  left() {
+  right() {
     var f = new Vector3([0, 0, 0]);
     f.set(this.at);
     f.sub(this.eye);
@@ -69,8 +69,8 @@ class Camera {
     s.set(f);
     s = Vector3.cross(f, this.up);
     s = s.normalize();
-    this.at = this.at.add(s.mul(0.25));
-    this.eye = this.eye.add(s.mul(0.25));
+    this.at = this.at.add(s.mul(0.5));
+    this.eye = this.eye.add(s.mul(0.5));
     this.viewMat.setLookAt(
       this.eye.elements[0],
       this.eye.elements[1],
@@ -84,7 +84,7 @@ class Camera {
     ); // (eye, at, up)
   }
 
-  right() {
+  left() {
     var f = new Vector3([0, 0, 0]);
     f.set(this.eye);
     f.sub(this.at);
@@ -92,8 +92,24 @@ class Camera {
     s.set(f);
     s = Vector3.cross(f, this.up);
     s = s.normalize();
-    this.at = this.at.add(s.mul(0.25));
-    this.eye = this.eye.add(s.mul(0.25));
+    this.at = this.at.add(s.mul(0.5));
+    this.eye = this.eye.add(s.mul(0.5));
+    this.viewMat.setLookAt(
+      this.eye.elements[0],
+      this.eye.elements[1],
+      this.eye.elements[2],
+      this.at.elements[0],
+      this.at.elements[1],
+      this.at.elements[2],
+      this.up.elements[0],
+      this.up.elements[1],
+      this.up.elements[2],
+    ); // (eye, at, up)
+  }
+  // NOTE: lets the user go up or down
+  cameraYaxis(input) {
+    var f = new Vector3([0, input, 0]);
+    this.eye.add(f);
     this.viewMat.setLookAt(
       this.eye.elements[0],
       this.eye.elements[1],
@@ -107,13 +123,16 @@ class Camera {
     ); // (eye, at, up)
   }
 
-  panLeft() {
+  panLeft(number) {
+    if (!number) {
+      number = 10;
+    }
     var f = new Vector3([0, 0, 0]);
     f.set(this.at);
     f.sub(this.eye);
     var rotationMatrix = new Matrix4();
     rotationMatrix.setRotate(
-      10,
+      number,
       this.up.elements[0],
       this.up.elements[1],
       this.up.elements[2],
@@ -137,13 +156,16 @@ class Camera {
     ); // (eye, at, up)
   }
 
-  panRight() {
+  panRight(number) {
+    if (!number) {
+      number = -10;
+    }
     var f = new Vector3([0, 0, 0]);
     f.set(this.at);
     f.sub(this.eye);
     var rotationMatrix = new Matrix4();
     rotationMatrix.setRotate(
-      -10,
+      number,
       this.up.elements[0],
       this.up.elements[1],
       this.up.elements[2],
@@ -195,6 +217,24 @@ class Camera {
       this.up.elements[1],
       this.up.elements[2],
     ); // (eye, at, up)
+  }
+  panY(number) {
+    var f = new Vector3([0, number, 0]);
+    this.at.add(f);
+    // f.set(this.at.elements[0], this.at.elements[1] + 1, this.at.elements[2]);
+    // this.at = f;
+    this.viewMat.setLookAt(
+      this.eye.elements[0],
+      this.eye.elements[1],
+      this.eye.elements[2],
+      this.at.elements[0],
+      this.at.elements[1],
+      this.at.elements[2],
+      this.up.elements[0],
+      this.up.elements[1],
+      this.up.elements[2],
+    );
+    // // (eye, at, up)
   }
 
   panMRight(deg) {

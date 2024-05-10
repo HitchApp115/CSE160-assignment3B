@@ -1,7 +1,8 @@
 // ColoredPoint.js (c) 2012 matsuda
 // Vertex shader program
 // Global variables
-let canvas;
+const canvas = document.getElementById("asg2");
+const mouseDataDiv = document.getElementById("mouseData");
 let gl;
 let a_Position;
 // NOTE: color variable that will be used to store the color of the shapes
@@ -22,7 +23,7 @@ let u_ModelMatrix;
 let u_GlobalRotateMatrix;
 let u_ViewMatrix;
 let u_ProjectionMatrix;
-let g_globalAngle = 90;
+let g_globalAngle = -90;
 let g_camera;
 
 var VSHADER_SOURCE = `
@@ -94,12 +95,6 @@ let u_Sampler2;
 let u_whichTexture = 1;
 
 function setupWebGL() {
-  canvas = document.getElementById("asg2");
-  if (!canvas) {
-    console.log("Failed to retrieve the <canvas> element");
-    return;
-  }
-
   // Rendering context for WebGL
   gl = canvas.getContext("webgl", { preserveDrawingBuffer: true });
   if (!gl) {
@@ -222,7 +217,7 @@ function initTextures() {
     sendTextureToTEXTURE2(image2);
   };
   // Tell the browser to load an image
-  skyImageObj.src = "sky.jpg";
+  skyImageObj.src = "sky1.jpg";
   image1.src = "grass1.png";
   image2.src = "wall.jpg";
 
@@ -337,30 +332,36 @@ function sendTextureToTEXTURE2(image) {
 
   console.log("Finished loadTexture2");
 }
+// NOTE: handles the ui part and cursor moments;
 
-function addActionsForHtmlUI() {
-  document
-    .getElementById("angleSlide")
-    .addEventListener("mousemove", function () {
-      g_globalAngle = this.value;
-      // renderAllShapes();
-      renderScene();
-    });
-  document.getElementById("On").addEventListener("click", function () {
-    g_yellowAnimation = true;
-    tick();
-  });
-  document.getElementById("Off").addEventListener("click", function () {
-    g_yellowAnimation = false;
-
-    tick();
-  });
-}
 function changeBaseColorAndIntensity(rgba, textureIntensity) {
   gl.uniform4f(u_baseColor, rgba[0], rgba[1], rgba[2], rgba[3]);
   gl.uniform1f(u_texColorWeight, textureIntensity);
 }
+function lockCursor() {
+  canvas.requestPointerLock =
+    canvas.requestPointerLock ||
+    canvas.mozRequestPointerLock ||
+    canvas.webkitRequestPointerLock;
+  if (canvas.requestPointerLock) {
+    document.addEventListener("pointerlockchange", handlePointerLockChange);
+    canvas.requestPointerLock();
+  }
+}
 
+// Pointer Lock Change Handler
+function handlePointerLockChange() {
+  if (document.pointerLockElement === canvas) {
+    document.body.style.overflow = "hidden";
+    // Cursor is locked
+  } else {
+    document.body.style.overflow = "auto";
+    // Cursor is unlocked
+  }
+}
+
+let lastX = canvas.width / 2;
+let lastY = canvas.height / 2;
 function main() {
   // Set up canvas and gl variables
   setupWebGL();
@@ -369,6 +370,7 @@ function main() {
   addActionsForHtmlUI();
   g_camera = new Camera();
   document.onkeydown = keydown;
+  document.onkeyup = keyup;
 
   initTextures();
 
@@ -378,14 +380,7 @@ function main() {
 
   // Specify the color for clearing <canvas>
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  // // // Clear <canvas>
-  // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  // renderAllShapes();
-  // renderScene();
-  // tick();
   requestAnimationFrame(tick);
-  // gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  // Draw the rectangle
 }
 
 // this function is the function that will instiate to start the scene
@@ -398,25 +393,30 @@ let g_at = [0, 0, -100];
 var g_up = [0, 1, 0];
 
 var g_map = [
-  [1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 1],
 ];
 
 function drawWalls() {
-  var body = new Cube();
+  var lvl1 = new Cube();
+  var lvl2 = new Cube();
   for (x = 0; x < g_map.length; x++) {
     for (y = 0; y < g_map[x].length; y++) {
       if (g_map[x][y] == 1) {
-        body.color = [1.0, 0.0, 0.0, 1.0];
-        body.matrix.setTranslate(x - 4, -0.75, y - 4);
-        body.textureNum = -2;
-        body.render();
+        lvl1.color = [1.0, 0.0, 0.0, 1.0];
+        lvl1.matrix.setTranslate(x - 4, -0.75, y - 4);
+        lvl1.textureNum = -2;
+        lvl1.render();
+        lvl2.color = [1.0, 0.0, 0.0, 1.0];
+        lvl2.matrix.setTranslate(x - 4, 0.27, y - 4);
+        lvl2.textureNum = -2;
+        lvl2.render();
       }
     }
   }
@@ -480,6 +480,64 @@ function updateAnimationAngle() {
   }
 }
 
+// NOTE: cursor movements
+
+// Track Cursor Movement
+
+function addActionsForHtmlUI() {
+  // document
+  //   .getElementById("angleSlide")
+  //   .addEventListener("mousemove", function () {
+  //     g_globalAngle = this.value;
+  //     // renderAllShapes();
+  //     renderScene();
+  //   });
+  canvas.addEventListener("mousemove", (event) => {
+    if (document.pointerLockElement === canvas) {
+      const deltaX = event.movementX;
+      const deltaY = event.movementY;
+
+      // Update player rotation or camera based on deltaX and deltaY
+      // (This part will depend on your specific game logic)
+
+      lastX = event.clientX;
+      lastY = event.clientY;
+      if (event.movementX < 0) {
+        // NOTE:have to invert coordinate to coorspenond to mous moments
+        g_camera.panLeft(-event.movementX * 0.6);
+      }
+      if (event.movementX > 0) {
+        g_camera.panRight(-event.movementX * 0.6);
+      }
+      g_camera.panY(-event.movementY);
+
+      // Update mouse data display
+      mouseDataDiv.textContent = `${event.movementX}, ${event.movementY}`; // Update with delta values
+    }
+  });
+
+  // Call lockCursor on some user interaction (e.g., button click)
+  canvas.addEventListener("click", lockCursor);
+  document.getElementById("On").addEventListener("click", function () {
+    g_yellowAnimation = true;
+    tick();
+  });
+  document.getElementById("Off").addEventListener("click", function () {
+    g_yellowAnimation = false;
+
+    tick();
+  });
+}
+
+let shiftDown = false;
+let intervalId = null; // Variable to store the interval ID
+let key = "";
+function userDown() {
+  if (shiftDown) {
+    g_camera.cameraYaxis(-0.3);
+  }
+}
+
 function keydown(ev) {
   if (ev.keyCode == 39 || ev.keyCode == 68) {
     // Right Arrow or D
@@ -501,5 +559,18 @@ function keydown(ev) {
   } else if (ev.keyCode == 69) {
     // E
     g_camera.panRight();
+  } else if (ev.keyCode == 32) {
+    g_camera.cameraYaxis(0.3);
+  } else if (ev.keyCode == 16) {
+    shiftDown = true;
+    intervalId = setInterval(userDown, 70);
+  }
+}
+
+function keyup(ev) {
+  if (ev.keyCode == 16) {
+    shiftDown = false;
+    clearInterval(intervalId);
+    intervalId = null;
   }
 }

@@ -69,20 +69,21 @@ class Cube {
     // Left
     drawTriangle3DUV(
       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0],
-      [0, 1, 1, 1, 0, 0],
+      [0, 0, 0, 1, 1, 1],
     );
     drawTriangle3DUV(
       [0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-      [0, 0, 1, 0, 1, 1],
+      [1, 1, 0, 0, 1, 0],
     );
     // Right
-    drawTriangle3D(
+    drawTriangle3DUV(
+      // if you notice the triangle starts at 1,0 ->1,1-> 0,1
       [1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0],
-      [0, 0, 1, 0, 1, 1],
+      [1, 0, 1, 1, 0, 1],
     );
-    drawTriangle3D(
+    drawTriangle3DUV(
       [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0],
-      [0, 1, 1, 1, 0, 0],
+      [0, 1, 1, 0, 0, 0],
     );
 
     gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
