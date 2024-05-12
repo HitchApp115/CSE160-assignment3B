@@ -1,7 +1,7 @@
 function drawPenguin() {
   var body = new Cube();
   body.color = [0.05, 0.05, 0.05, 1.0];
-  body.matrix.setTranslate(-0.25, -0.75, 0);
+  body.matrix.setTranslate(-3, -0.75, 7);
 
   body.matrix.rotate(-5, 0.1, 0, 0);
   // NOTE: starting posssition of head

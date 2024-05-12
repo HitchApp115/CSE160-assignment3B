@@ -25,14 +25,22 @@
     }
     body {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    canvas {
+      max-height: 700px;
+      height: 100%;
+    }
+
+    .centerCanvas {
+      display: flex;
+      flex-grow: 1;
       justify-content: center;
       align-items: center;
     }
-    canvas {
-      max-width: 800px;
-      width: 100%;
-    }
+
     /* NOTE: to self had assign values to canvas then scale it to make it render correctly for the aspects or else it would be screwed */
   </style>
   <body onload="main()">
@@ -40,42 +48,46 @@
       <h2>Anthony Duong</h2>
       <h2>ankaduon@ucsc.edu</h2>
       <h2>
-        Notes to graders: When user hits W, call camera.moveForward()<br />When
-        user hits S, call camera.moveBackwards() <br />When user hits A, call
-        camera.moveLeft() <br />When user hits Q call camera.panLeft()
-        <br />When user hits E call camera.panRight()
+        Notes to graders: Controls
+        <hr />
+        <br />
+        W: forward<br />
+        S: backward <br />
+        A: left <br />
+        D: right <br />
+        Q call camera.panLeft()<br />
+        E call camera.panRight()<br />
+        J: to add block at where blue is <br />
+        u to break block where red is <br />
+        Space to move player up<br />
+        Shift to move player down<br />
+
+        click canvas scren to enter mouse mode.
+        <br />
+        Esc to escape <br />
+        left click to add block where blue is at <br />
+        rigth click to delete block where red is at
+        <br />
+        There's a penguin somewhere break the blocks to find it!
+        <img src="penguin.png" alt="" />
       </h2>
-      <div id="mouseData">hello</div>
-    </div>
-    <canvas id="asg2" width="700" height="700">
-      Please use the browser supporting "canvas".
-    </canvas>
-    <div>
+      <!-- <div id="mouseData">mouse Data</div> -->
+      <div id="playerPos"></div>
+      <div id="playerAngle"></div>
       <div>
-        Animation :
-        <p id="fps"></p>
+        Animation : <span id="fps"></span>
+        fps
       </div>
-      <button id="On">ON</button>
-      <button id="Off">Off</button>
+    </div>
+    <div class="centerCanvas">
+      <canvas id="asg2" width="500" height="500">
+        Please use the browser supporting "canvas".
+      </canvas>
     </div>
 
-    <div style="display: flex">
-      <div>
-        Camera Angle<input
-          type="range"
-          min="-360"
-          max="360"
-          value="0"
-          class="slider"
-          id="angleSlide"
-        />
-      </div>
-    </div>
-    <!-- javascript files containing functions for WebGL -->
     <script src="lib/webgl-utils.js"></script>
     <script src="lib/webgl-debug.js"></script>
     <script src="lib/cuon-utils.js"></script>
-    <!-- <script src="lib/cuon-matrix.js"></script> -->
     <script src="lib/cuon-matrix-cse160.js"></script>
     <script src="./Triangle.js"></script>
     <script src="./Square.js"></script>

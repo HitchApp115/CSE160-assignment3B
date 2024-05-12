@@ -3,6 +3,10 @@
 // Global variables
 const canvas = document.getElementById("asg2");
 const mouseDataDiv = document.getElementById("mouseData");
+const playerPosDiv = document.getElementById("playerPos");
+const playerAngleDiv = document.getElementById("playerAngle");
+let playerAngle = 0;
+
 let gl;
 let a_Position;
 // NOTE: color variable that will be used to store the color of the shapes
@@ -23,7 +27,7 @@ let u_ModelMatrix;
 let u_GlobalRotateMatrix;
 let u_ViewMatrix;
 let u_ProjectionMatrix;
-let g_globalAngle = -90;
+let g_globalAngle = 0;
 let g_camera;
 
 var VSHADER_SOURCE = `
@@ -381,6 +385,7 @@ function main() {
   // Specify the color for clearing <canvas>
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   requestAnimationFrame(tick);
+  playerPosDiv.textContent = `player pos x: ${Math.round(g_camera.eye.elements[0])}---y:${Math.round(g_camera.eye.elements[2])}`;
 }
 
 // this function is the function that will instiate to start the scene
@@ -392,31 +397,96 @@ let g_eye = [0, 0, 3];
 let g_at = [0, 0, -100];
 var g_up = [0, 1, 0];
 
-var g_map = [
-  [1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
+// NOTE: 1 is the regular walls and and 2 is for roof
+// Define the size of the grid
+const rows = 20;
+const cols = 20;
+const defaultValue = 1;
+
+// Initialize the grid with a for loop
+let g_map = [
+  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0],
+  [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+  [0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0],
+  [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+  [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+  [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+  [0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1],
+  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 0, 1, 0, 1],
+  [0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 2, 1, 0, 1, 0, 1, 0, 1],
+  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 1, 0, 1],
+  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 1, 1, 1, 1],
+  [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1],
+  [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+  [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0],
+  [2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+  [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+  [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+  [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1],
 ];
 
+// for (let i = 0; i < rows; i++) {
+//     // Create a new row
+//     let row = [];
+//     for (let j = 0; j < cols; j++) {
+//         // Add the default value to each column in the row
+//         row.push(defaultValue);
+//     }
+//     // Add the row to the grid
+//     g_map.push(row);
+// }
+// g_map[0][0] = 2;
+
+let playerPosX = 0;
+let playerPosY = 0;
+let tracerBlockX1 = 0;
+let tracerBlockY1 = 0;
 function drawWalls() {
   var lvl1 = new Cube();
-  var lvl2 = new Cube();
+
   for (x = 0; x < g_map.length; x++) {
     for (y = 0; y < g_map[x].length; y++) {
-      if (g_map[x][y] == 1) {
-        lvl1.color = [1.0, 0.0, 0.0, 1.0];
-        lvl1.matrix.setTranslate(x - 4, -0.75, y - 4);
-        lvl1.textureNum = -2;
-        lvl1.render();
-        lvl2.color = [1.0, 0.0, 0.0, 1.0];
-        lvl2.matrix.setTranslate(x - 4, 0.27, y - 4);
-        lvl2.textureNum = -2;
-        lvl2.render();
+      for (z = 0; z < 3; z++) {
+        let blockSelected = 1;
+        if (x == tracerBlockX1 && y == tracerBlockY1) {
+          blockSelected = 0.2;
+          if (g_map[x][y] != 1 && g_map[x][y] != 2) {
+            changeBaseColorAndIntensity([0, 0, 1, 0.4], 0.1);
+            lvl1.color = [0.0, 1.0, 0.0, 0.5];
+            lvl1.matrix.setTranslate(x - 10, 0 - 0.75, y - 10);
+            lvl1.matrix.scale(1, 0.2, 1);
+            lvl1.textureNum = 0;
+            lvl1.render();
+            changeBaseColorAndIntensity([0, 0, 1, 1], 1);
+          }
+        }
+        if (g_map[x][y] == 1) {
+          changeBaseColorAndIntensity([1, 0, 0, 0.4], blockSelected);
+          lvl1.color = [1.0, 0.0, 0.0, 1.0];
+          lvl1.matrix.setTranslate(x - 10, z - 0.75, y - 10);
+          lvl1.textureNum = -2;
+          lvl1.render();
+          changeBaseColorAndIntensity([0, 0, 1, 1], 1);
+        }
+        // if (x == playerPosX && y == playerPosY) {
+        //   changeBaseColorAndIntensity([0, 0, 1, 0.4], 0.3);
+        //   lvl1.color = [0.0, 1.0, 0.0, 0.5];
+        //   lvl1.matrix.setTranslate(x - 10, z - 0.75, y - 10);
+        //   lvl1.textureNum = 0;
+        //   lvl1.render();
+        //   changeBaseColorAndIntensity([0, 0, 1, 1], 1);
+        // }
+
+        if (g_map[x][y] == 2) {
+          changeBaseColorAndIntensity([1, 0, 0, 0.4], blockSelected);
+          lvl1.color = [1.0, 0.0, 0.0, 1.0];
+          lvl1.matrix.setTranslate(x - 10, 2.25, y - 10);
+          lvl1.textureNum = -2;
+          lvl1.render();
+          changeBaseColorAndIntensity([0, 0, 1, 1], 1);
+        }
       }
     }
   }
@@ -442,17 +512,37 @@ function renderAllShapes() {
   floor.color = [1.0, 0.0, 0.0, 1.0];
   floor.textureNum = -1;
   floor.matrix.translate(0, -0.75, 0.0);
-  floor.matrix.scale(10, 0, 10);
+  floor.matrix.scale(20, 0, 20);
   floor.matrix.translate(-0.5, 0, -0.5);
   floor.render();
 
   renderSky();
-
+  tracker();
   drawWalls();
 }
 
+let block = 0;
+let maxZ = 10;
+function changeBlock() {
+  maxZ = g_camera.eye.elements[2];
+  // NOTE: offset by default g_camera.elements[2] and also the offset in drawwlls
+  g_map[tracerBlockX1][tracerBlockY1] = block;
+}
+function tracker() {
+  maxZ = g_camera.eye.elements[2];
+
+  let x = Math.ceil(g_camera.eye.elements[0] + 9);
+  let y = Math.ceil(maxZ + 9);
+  playerPosX = x;
+  playerPosY = y;
+  whereToDeleteAndAddBlock(normalizeAngle(playerAngle));
+
+  // playerPosDiv.textContent = `${g_camera.eye.elements[0].toFixed(3)}---${g_camera.eye.elements[1].toFixed(3)}---${g_camera.eye.elements[2].toFixed(3)}`;
+  playerPosDiv.textContent = `player pos x: ${Math.round(g_camera.eye.elements[0])}---y:${Math.round(g_camera.eye.elements[2])}`;
+}
+
 function renderSky() {
-  changeBaseColorAndIntensity([0, 0, 1, 1], 0.9);
+  changeBaseColorAndIntensity([1, 0, 0, 1], 0.7);
   var sky = new Cube();
   sky.color = [1.0, 0.0, 0.0, 1.0];
   sky.textureNum = 0;
@@ -462,16 +552,36 @@ function renderSky() {
   changeBaseColorAndIntensity([0, 1, 0, 1], 1);
 }
 
-function tick() {
-  g_seconds = performance.now() / 1000.0 - g_startTime;
-  // console.log(g_seconds);
+let lastFPSUpdate = 0;
+const fpsUpdateInterval = 1.0; // update every second
+let accumulatedFPS = 0;
+let frameCount = 0;
+let then = 0;
+
+function tick(now) {
+  requestAnimationFrame(tick);
+
+  now *= 0.001; // convert to seconds
+  const deltaTime = now - then; // compute time since last frame
+  then = now; // remember time for next frame
+
+  // Accumulate frames and their time intervals
+  accumulatedFPS += 1 / deltaTime;
+  frameCount++;
+
+  // Check if at least one second has elapsed since the last FPS update
+  if (now - lastFPSUpdate >= fpsUpdateInterval) {
+    const averagedFPS = accumulatedFPS / frameCount; // calculate average FPS over the interval
+    fpsElem.textContent = averagedFPS.toFixed(1); // update fps display
+    lastFPSUpdate = now; // reset the timer
+    accumulatedFPS = 0; // reset accumulated FPS
+    frameCount = 0; // reset frame count
+  }
 
   updateAnimationAngle();
 
   // renderScene();
   renderAllShapes();
-
-  requestAnimationFrame(tick);
 }
 
 function updateAnimationAngle() {
@@ -483,50 +593,106 @@ function updateAnimationAngle() {
 // NOTE: cursor movements
 
 // Track Cursor Movement
+let fpsElem;
+
+function normalizeAngle(angle) {
+  let normalizedAngle = angle % 360;
+  if (normalizedAngle < 0) {
+    normalizedAngle += 360;
+  }
+  return normalizedAngle;
+}
+
+function whereToDeleteAndAddBlock(angle) {
+  if ((337.5 < angle && angle < 360) || (0 < angle && angle < 22.5)) {
+    // Your code here
+    tracerBlockX1 = playerPosX;
+    tracerBlockY1 = playerPosY - 1;
+  } else if (22.5 < angle && angle < 67.5) {
+    tracerBlockX1 = playerPosX + 1;
+    tracerBlockY1 = playerPosY - 1;
+  } else if (67.5 < angle && angle < 112.5) {
+    tracerBlockX1 = playerPosX + 1;
+    tracerBlockY1 = playerPosY;
+  } else if (112.5 < angle && angle < 157.5) {
+    tracerBlockX1 = playerPosX + 1;
+    tracerBlockY1 = playerPosY + 1;
+  } else if (157.5 < angle && angle < 202.5) {
+    tracerBlockX1 = playerPosX;
+    tracerBlockY1 = playerPosY + 1;
+  } else if (202.5 < angle && angle < 247.5) {
+    tracerBlockX1 = playerPosX - 1;
+    tracerBlockY1 = playerPosY + 1;
+  } else if (247.5 < angle && angle < 292.5) {
+    tracerBlockX1 = playerPosX - 1;
+    tracerBlockY1 = playerPosY;
+  } else if (292.5 < angle && angle < 337.5) {
+    tracerBlockX1 = playerPosX - 1;
+    tracerBlockY1 = playerPosY - 1;
+  }
+}
+
+function handleMouseMove(event) {
+  if (document.pointerLockElement === canvas) {
+    const deltaX = event.movementX;
+    const deltaY = event.movementY;
+
+    // Update player rotation or camera based on deltaX and deltaY
+    // (This part will depend on your specific game logic)
+
+    lastX = event.clientX;
+    lastY = event.clientY;
+    if (event.movementX < 0) {
+      // NOTE:have to invert coordinate to correspond to mouse movements
+      g_camera.panLeft(-event.movementX * 0.6);
+    }
+    if (event.movementX > 0) {
+      g_camera.panRight(-event.movementX * 0.6);
+    }
+    g_camera.panY(-event.movementY);
+    let normalizeAng = normalizeAngle(playerAngle);
+    playerAngle = playerAngle + event.movementX * 0.6;
+
+    playerAngleDiv.textContent = `player Angle ${normalizeAng}`;
+
+    // Update mouse data display
+    mouseDataDiv.textContent = `${event.movementX}, ${event.movementY},`; // Update with delta values
+    whereToDeleteAndAddBlock(normalizeAng);
+    // playerPosDiv.textContent = `${g_camera.at.elements[-1]}---${g_camera.at.elements[1]}---${g_camera.at.elements[2]}`;
+
+    // NOTE: block in front = -1 of playerPos
+  }
+}
+
+function handleMouseClick(event) {
+  if (document.pointerLockElement === canvas) {
+    switch (event.button) {
+      case 0: // Left button
+        block = 1;
+        changeBlock();
+        // Implement left-click specific logic here
+        break;
+      // case 1: // Middle button (scroll wheel button)
+      //     console.log("Middle button clicked");
+      //     // Implement middle-click specific logic here
+      //     break;
+      case 2: // Right button
+        block = 0;
+        changeBlock();
+        // Implement right-click specific logic here
+        break;
+    }
+  }
+}
+
+// Add event listener using the encapsulated function
 
 function addActionsForHtmlUI() {
-  // document
-  //   .getElementById("angleSlide")
-  //   .addEventListener("mousemove", function () {
-  //     g_globalAngle = this.value;
-  //     // renderAllShapes();
-  //     renderScene();
-  //   });
-  canvas.addEventListener("mousemove", (event) => {
-    if (document.pointerLockElement === canvas) {
-      const deltaX = event.movementX;
-      const deltaY = event.movementY;
-
-      // Update player rotation or camera based on deltaX and deltaY
-      // (This part will depend on your specific game logic)
-
-      lastX = event.clientX;
-      lastY = event.clientY;
-      if (event.movementX < 0) {
-        // NOTE:have to invert coordinate to coorspenond to mous moments
-        g_camera.panLeft(-event.movementX * 0.6);
-      }
-      if (event.movementX > 0) {
-        g_camera.panRight(-event.movementX * 0.6);
-      }
-      g_camera.panY(-event.movementY);
-
-      // Update mouse data display
-      mouseDataDiv.textContent = `${event.movementX}, ${event.movementY}`; // Update with delta values
-    }
-  });
-
-  // Call lockCursor on some user interaction (e.g., button click)
+  fpsElem = document.getElementById("fps");
+  fpsCounter = document.getElementById("fps");
+  canvas.addEventListener("mousemove", handleMouseMove);
+  canvas.addEventListener("mousedown", handleMouseClick);
   canvas.addEventListener("click", lockCursor);
-  document.getElementById("On").addEventListener("click", function () {
-    g_yellowAnimation = true;
-    tick();
-  });
-  document.getElementById("Off").addEventListener("click", function () {
-    g_yellowAnimation = false;
-
-    tick();
-  });
 }
 
 let shiftDown = false;
@@ -556,7 +722,11 @@ function keydown(ev) {
   } else if (ev.keyCode == 81) {
     // Q
     g_camera.panLeft();
+    playerAngle = playerAngle - 10;
+    whereToDeleteAndAddBlock(normalizeAngle(playerAngle));
   } else if (ev.keyCode == 69) {
+    playerAngle = playerAngle + 10;
+    whereToDeleteAndAddBlock(normalizeAngle(playerAngle));
     // E
     g_camera.panRight();
   } else if (ev.keyCode == 32) {
@@ -564,7 +734,14 @@ function keydown(ev) {
   } else if (ev.keyCode == 16) {
     shiftDown = true;
     intervalId = setInterval(userDown, 70);
+  } else if (ev.key == "j") {
+    block = 1;
+    changeBlock();
+  } else if (ev.key == "u") {
+    block = 0;
+    changeBlock();
   }
+  playerPosDiv.textContent = `player pos x: ${Math.round(g_camera.eye.elements[0])}---y:${Math.round(g_camera.eye.elements[2])}`;
 }
 
 function keyup(ev) {

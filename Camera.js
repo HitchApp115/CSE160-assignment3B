@@ -2,7 +2,7 @@ class Camera {
   constructor() {
     this.fov = 60;
     // NOTE: eye controls the view in the persective as it relates to the object
-    this.eye = new Vector3([0, 0.2, 10]);
+    this.eye = new Vector3([0, 0, 1]);
     this.at = new Vector3([0, 1, -100]);
     this.up = new Vector3([0, 1.5, 0]);
     this.viewMat = new Matrix4();
